@@ -2,7 +2,10 @@ import discord
 import asyncio
 import string
 import re
-import os
+import tensorflow as tf
+from chatterbot.trainers import ListTrainer
+from chatterbot import ChatBot
+
 
 
 def ask(question):
@@ -14,6 +17,26 @@ def ask(question):
         #print('Writing to ask.txt')
         for item in ask_list:
             att_file.write(item + "\n")
+
+chatbot = ChatBot('Chet', trainer='chatterbot.trainers.ListTrainer')
+
+
+def train():
+    array = []
+    i = 0
+
+    with open("clean.txt") as a:
+        for line in a:
+            array.append(str(line))
+    for item in array:
+        chatbot.train(array[i])
+        i += 1
+    print('Done Training')
+
+
+def start_Chet():
+    train()
+start_Chet()
 
 
 def answer(question):
@@ -54,52 +77,146 @@ async def on_message(message):
         answer(str(two))
         print(one)
         print(two)
-        #await client.send_message(client.get_channel('294353556448870401'), one, tts=True)
-        #await client.send_message(client.get_channel('294353556448870401'), two, tts=True)
+        await client.send_message(client.get_channel('294353556448870401'), one, tts=True)
+        await client.send_message(client.get_channel('294353556448870401'), two, tts=True)
         print('User who sent it : ' + str(user))
         print('Continuing to listen to messages...')
+
+    elif message.content.startswith('Chet...'):
+        question = message.content
+        question.replace('Chet...', '')
+        response = chatbot.get_response(question)
+        print('Got request :' + str(question))
+        await client.send_message(client.get_channel('294353556448870401'), str(response), tts=True)
 
     elif message.content.startswith(''):
         print('Received random message...')
         tmp = message.content
         user = message.author
-        three = (tmp + ' ---written by--- ' + str(user))
+        three = (tmp + '\t' + str(user))
         all(three)
         print(three)
         if (str(user) == 'A.tothe.Zizzle#8885') & (message.content.startswith('Listen up, ')):
-            #await client.send_message(client.get_channel('294353556448870401'), "Everyone listen, my God is speaking.", tts=True)
+            await client.send_message(client.get_channel('294353556448870401'), "Everyone listen, my God is speaking.", tts=True)
+
+
+def join_ask_answer():
+    ask_list = []
+    answer_list = []
+    joined = []
+    i = 0
+    j = 0
+    with open("clean_ask.txt") as a:
+        for line in a:
+            ask_list.append(line)
+            i += 1
+    with open("clean_answer.txt") as b:
+        for line in b:
+            answer_list.append(line)
+            j += 1
+    print(i)
+    print(j)
+    if i == j:
+        for item in range(0, i):
+            joined.append(str(ask_list[item]))
+            joined.append(str(answer_list[item]))
+    elif i != j:
+        print('Sizes do not match up.')
+    with open("clean.txt", "a") as att_file:
+        for item in joined:
+            print(joined[item])
+            att_file.write(item + "\n")
+
+
 def analyzer(clean_line):
-
-    for x in range(0, len(clean_line)):
-        s = clean_line[x]
-        s = s.replace('-', ' ')
-        s = s.replace('$', ' ')
-        s = s.replace('?', ' ')
-        s = s.replace('.', ' ')
-        s = s.replace('"', ' ')
-        s = s.replace(',', ' ')
-        s = s.replace('=', ' ')
-        s = s.replace(':', ' ')
-        s = s.replace(';', ' ')
-        s = s.replace('/', ' ')
-        fully_cleaned = s
-        return fully_cleaned
-
-
-        output = ''.join(ch for ch in s if ch not in exclude)
+    i = 0
+    for c in string.punctuation:
+        while i < len(clean_line[i]):
+            s = clean_line.replace(c, '')
+            s = s.replace('.', '')
+            s = s.replace('?', '')
+    return s
 
 
 def moreAsk():
-    holder = []
-    i = 0
+    fresh_list = []
     with open("ask.txt") as a:
         for line in a:
             clean_line = str.lower(line)
-            remove = dict.fromkeys(map(ord, '\n ' + string.punctuation))
+            fresh = analyzer(clean_line)
+            fresh_list.append(fresh)
+            print("Training : ---> " + str(clean_line))
+            train(fresh)
+    with open("clean_ask.txt", "a") as att_file:
+        for item in fresh_list:
+            att_file.write(item + "\n")
+            print("Written : ---> " + str(item))
 
+
+
+def moreAnswer():
+    fresh_list = []
+    with open("answer.txt") as a:
+        for line in a:
+            clean_line = str.lower(line)
+            fresh = analyzer(clean_line)
+            fresh_list.append(fresh)
+            print("Training : ---> " + str(clean_line))
+            train(line)
+    with open("clean_answer.txt", "a") as att_file:
+        for item in fresh_list:
+            att_file.write(item + "\n")
+            print("Written : ---> " + str(item))
+
+
+def moreAll():
+    fresh_list = []
+    with open("all.txt") as a:
+        for line in a:
+            clean_line = str.lower(line)
+            fresh = analyzer(clean_line)
+            fresh_list.append(fresh)
+            print("Training : ---> " + str(clean_line))
+            train(line)
+    with open("clean_all.txt", "a") as att_file:
+        for item in fresh_list:
+            att_file.write(item + "\n")
+            print("Written : ---> " + str(item))
+
+def clean_up():
+    moreAll()
+    moreAnswer()
+    moreAsk()
+
+
+def get_line(file, row):
+    holder = []
+    with open(file) as b:
+        for line in b:
+            holder.append(line)
+    return holder[row]
+
+
+def think(question):
+    clean_q = str.lower(question)
+    fresh = analyzer(clean_q)
+    i = 0
+    found = False
+    with open('clean_ask.txt') as a:
+        for line in a:
             i += 1
+            if str(fresh) == str(line):
+                found = 1
+            if found == 1:
+                return get_line('clean_answer.txt', i)
 
 
+
+
+
+
+
+#clean_up()
 
 
 
@@ -108,3 +225,4 @@ def moreAsk():
 
 
 client.run('MzQzMTc2MjIyNDQxODY1MjI5.DGacyw.M2tXHAjDWNfohL45JfAsxiTIs-k')
+#start_Chet()
