@@ -1,0 +1,110 @@
+import discord
+import asyncio
+import string
+import re
+import os
+
+
+def ask(question):
+    print('Beginning ask process.')
+    ask = question
+    ask_list = []
+    ask_list.append(ask)
+    with open("ask.txt", "a") as att_file:
+        #print('Writing to ask.txt')
+        for item in ask_list:
+            att_file.write(item + "\n")
+
+
+def answer(question):
+    print('Beginning answer process.')
+    answer = question
+    answer_list = []
+    answer_list.append(answer)
+    with open("answer.txt", "a") as att_file:
+        #print('Writing to answer.txt')
+        for item in answer_list:
+            att_file.write(item + "\n")
+
+
+def all(question):
+    print('Beginning all process.')
+    all = question
+    all_list = []
+    all_list.append(all)
+    with open("all.txt", "a") as att_file:
+        print('Writing to all.txt')
+        for item in all_list:
+            att_file.write(item + "\n")
+
+client = discord.Client()
+print('Connected to Discord Client...')
+print('Waiting for messages...')
+
+
+@client.event
+async def on_message(message):
+    if message.content.startswith('Chet, '):
+        print('Received direct message...' + message.content)
+        tmp = message.content
+        user = message.author
+        one, two = tmp.split('..')
+        one = one.replace('Chet, ', '')
+        ask(str(one))
+        answer(str(two))
+        print(one)
+        print(two)
+        #await client.send_message(client.get_channel('294353556448870401'), one, tts=True)
+        #await client.send_message(client.get_channel('294353556448870401'), two, tts=True)
+        print('User who sent it : ' + str(user))
+        print('Continuing to listen to messages...')
+
+    elif message.content.startswith(''):
+        print('Received random message...')
+        tmp = message.content
+        user = message.author
+        three = (tmp + ' ---written by--- ' + str(user))
+        all(three)
+        print(three)
+        if (str(user) == 'A.tothe.Zizzle#8885') & (message.content.startswith('Listen up, ')):
+            #await client.send_message(client.get_channel('294353556448870401'), "Everyone listen, my God is speaking.", tts=True)
+def analyzer(clean_line):
+
+    for x in range(0, len(clean_line)):
+        s = clean_line[x]
+        s = s.replace('-', ' ')
+        s = s.replace('$', ' ')
+        s = s.replace('?', ' ')
+        s = s.replace('.', ' ')
+        s = s.replace('"', ' ')
+        s = s.replace(',', ' ')
+        s = s.replace('=', ' ')
+        s = s.replace(':', ' ')
+        s = s.replace(';', ' ')
+        s = s.replace('/', ' ')
+        fully_cleaned = s
+        return fully_cleaned
+
+
+        output = ''.join(ch for ch in s if ch not in exclude)
+
+
+def moreAsk():
+    holder = []
+    i = 0
+    with open("ask.txt") as a:
+        for line in a:
+            clean_line = str.lower(line)
+            remove = dict.fromkeys(map(ord, '\n ' + string.punctuation))
+
+            i += 1
+
+
+
+
+
+
+
+
+
+client.run('MzQzMTc2MjIyNDQxODY1MjI5.DGacyw.M2tXHAjDWNfohL45JfAsxiTIs-k')
